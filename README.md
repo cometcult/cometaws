@@ -1,6 +1,7 @@
 # CometAWS
 
 [![Build Status](https://travis-ci.org/cometcult/cometaws.svg?branch=master)](https://travis-ci.org/cometcult/cometaws)
+https://coveralls.io/repos/cometcult/cometaws/badge.svg?branch=master&service=github)
 [![Coverage Status](https://coveralls.io/repos/cometcult/cometaws/badge.svg?branch=master&service=github)](https://coveralls.io/github/cometcult/cometaws?branch=master)
 
 __Extremely Opinionated Amazon Web Services interface with deployment using shipit__
@@ -26,7 +27,13 @@ sudo npm install --save cometaws
 
 Create a new `shipitfile.js` with the following content:
 ```js 
-module.exports = function (shipit, tasks, cometDeployer) {
+module.exports = function (shipit, tasks, cometaws) {
+    var cometAws = new cometaws.CometAws({
+        env: shipit.environment,
+        region: 'eu-west-1'
+    });
+    var cometDeployer = new cometaws.CometDeployer(cometAws, shipit);
+    
     // defines matching EC2 servers based on tags
     cometDeployer.tags = [{
         Key: 'Role',
@@ -61,8 +68,9 @@ module.exports = function (shipit, tasks, cometDeployer) {
 
 ### Running shipitfile
 
-Use `./bin/cometshipit` to launch a shipit instance bootstrapped with `CometDeployer` which
-is not initialized until `cometDeployer.configureShipit(shipit, config)` is completed.
+Use `./bin/cometshipit` to launch a shipit instance bootstrapped with `cometaws` which
+will delay initialization of shipit until `cometDeployer.configureShipit(shipit, config)` is run, thus allowing
+dynamic configuration of config before executing tasks.
 
 ## License
 
