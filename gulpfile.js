@@ -14,8 +14,21 @@
 
 var gulp = require('gulp');
 var gulpJasmine = require('gulp-jasmine');
+var istanbul = require('gulp-istanbul');
  
-gulp.task('default', function () {
-    return gulp.src('spec/**/*.js')
-        .pipe(gulpJasmine());
+gulp.task('pre-test', function () {
+  return gulp.src(['lib/**/*.js'])
+    // Covering files
+    .pipe(istanbul())
+    // Force `require` to return covered files
+    .pipe(istanbul.hookRequire());
+});
+
+gulp.task('test', ['pre-test'], function () {
+  return gulp.src(['spec/**/*.js'])
+    .pipe(gulpJasmine())
+    // Creating the reports after tests ran
+    .pipe(istanbul.writeReports())
+    // Enforce a coverage of at least 90%
+    .pipe(istanbul.enforceThresholds({ thresholds: { global: 90 } }));
 });

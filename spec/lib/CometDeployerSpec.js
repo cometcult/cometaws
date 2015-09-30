@@ -18,7 +18,8 @@ describe('CometDeployer', () => {
     cometDeployer,
     cometAws,
     shipit,
-    config;
+    config,
+    shipitConfig;
 
   beforeEach(() => {
     cometAws = {
@@ -26,6 +27,9 @@ describe('CometDeployer', () => {
     };
     config = {
       test: {}
+    };
+    shipitConfig = {
+      default: {}
     };
     shipit = {
       initConfig: jasmine.createSpy()
@@ -56,7 +60,7 @@ describe('CometDeployer', () => {
       }).toThrowError('No AWS tags set');  
     });
 
-    it('should resolve with config used', (done) => {
+    it('should throw exception if no matching instances were found', (done) => {
       cometDeployer.tags = [{
           Key: 'Project',
           Value: 'wtp'
@@ -64,21 +68,59 @@ describe('CometDeployer', () => {
       shipit.environment = 'test';
 
       cometAws.describeInstancesWithFilters.and.callFake( () => {
-        return bluebird.resolve([{
-          'PublicDnsName': 'SomeDNSAddress',
-          'PrivateDnsName': 'SomeInternalDNSAddress'
-        }]);
+        return bluebird.resolve([]);
       });
-
-      cometDeployer.configureShipit(shipit, config).then( config => {
-        expect(shipit.initConfig).toHaveBeenCalledWith({
-          test: {
-            servers: ['ubuntu@SomeInternalDNSAddress']
-          }
-        });
+      cometDeployer.configureShipit(shipit, config).catch( (err) => {
+        expect(err).toEqual(jasmine.any(Error));
+        expect(shipit.initConfig).not.toHaveBeenCalled();
         done();
       });
+    });
 
+    describe('supporting both private and public dns', () => {
+      beforeEach(() => {
+        cometDeployer.tags = [{
+            Key: 'Project',
+            Value: 'wtp'
+        }];
+        shipit.environment = 'test';
+
+        cometAws.describeInstancesWithFilters.and.callFake( () => {
+          return bluebird.resolve([{
+            'PublicDnsName': 'SomeDNSAddress',
+            'PrivateDnsName': 'SomeInternalDNSAddress'
+          }]);
+        });
+        shipit.initConfig.and.callFake(() => {
+          shipit.config = shipitConfig;
+        });
+      });
+
+      it('should configure with matching aws instances', (done) => {
+        cometDeployer.configureShipit(shipit, config).then( (config) => {
+          expect(shipit.initConfig).toHaveBeenCalledWith({
+            test: {
+              servers: ['ubuntu@SomeInternalDNSAddress']
+            }
+          });
+          expect(config).toEqual(shipitConfig);
+          done();
+        });
+      });
+
+      it('should configure with matching aws instances using public DNS address', (done) => {
+        cometDeployer.usePrivateDns = false;
+
+        cometDeployer.configureShipit(shipit, config).then( (config) => {
+          expect(shipit.initConfig).toHaveBeenCalledWith({
+            test: {
+              servers: ['ubuntu@SomeDNSAddress']
+            }
+          });
+          expect(config).toEqual(shipitConfig);
+          done();
+        });
+      });
     });
   });
 });

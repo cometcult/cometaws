@@ -33,6 +33,8 @@
     "shipit-cli": "^1.3.0"
   },
   "devDependencies": {
-    "gulp-jasmine": "^2.1.0"
+    "gulp-istanbul": "^0.10.1",
+    "gulp-jasmine": "^2.1.0",
+    "gulp-tap": "^0.1.3"
   }
 }
