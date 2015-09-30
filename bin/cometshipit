@@ -20,9 +20,7 @@ var v8flags = require('v8flags');
 var Liftoff = require('liftoff');
 var argv = require('minimist')(process.argv.slice(2));
 var Shipit = require('shipit-cli');
-var CometAws = require(`${__dirname}/lib/cometaws/CometAws`);
-var CometDeployer = require(`${__dirname}/lib/cometaws/CometDeployer`);
-
+var cometaws = require(`${__dirname}/../lib/`);
 
 // Initialize cli.
 var cli = new Liftoff({
@@ -82,12 +80,7 @@ function initShipit(env, shipfile, tasks) {
   var shipit = new Shipit({environment: env});
 
   // Load shipfile.
-  var cometAws = new CometAws({
-        env: env
-  });
-  var cometDeployer = new CometDeployer(cometAws, shipit);
-  
-  require(shipfile)(shipit, tasks, cometDeployer).then(function () {
+  require(shipfile)(shipit, tasks, cometaws).then(function () {
     // Initialize shipit.
     shipit.initialize();
 
