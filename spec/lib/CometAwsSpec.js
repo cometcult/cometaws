@@ -24,6 +24,8 @@ describe('CometAws', () => {
     });
     ec2 = {
       terminateInstancesPromised: jasmine.createSpy(),
+      runInstancesPromised: jasmine.createSpy(),
+      describeInstancesPromised: jasmine.createSpy(),
       describeInstanceStatusPromised: jasmine.createSpy(),
       createTagsPromised: jasmine.createSpy()
     };
@@ -67,17 +69,85 @@ describe('CometAws', () => {
     });
   });
 
-  it('should create tag', () => {
-    expect(CometAws.createTag('SomeKey', 'WithSomeValue')).toEqual({
-      Key: 'SomeKey',
-      Value: 'WithSomeValue'
+  it('should find instances by tagFilters', () => {
+    var filters = [{
+      Name: 'tag:Project',
+      Values: ['Confr']
+    }];
+
+    ec2.describeInstancesPromised.and.returnValue(bluebird.resolve({
+      Reservations: [{
+        Instances: []
+      }]
+    }));
+
+    cometAws.describeInstancesWithFilters(filters);
+    expect(ec2.describeInstancesPromised).toHaveBeenCalledWith({
+      Filters: filters
     });
   });
 
-  it('should create name tag', () => {
-    expect(CometAws.createNameTag('InstanceName')).toEqual({
-      Key: 'Name',
-      Value: 'InstanceName'
+  it('should launch instance with params', () => {
+    cometAws.subnetId = 'mysubnetid';
+    cometAws.amiImageId = 'ami-image';
+
+    // with userdata
+    cometAws.launchInstance({
+      key: 'nameofmysshkey',
+      instanceType: 't2.small',
+      securityGroupIds: ['sg-12345'],
+      amiImageId: 'ami-image',
+      userData: 'some-user-data',
+      disksize: 14.3
+    });
+
+    expect(ec2.runInstancesPromised).toHaveBeenCalledWith({
+      'InstanceType': 't2.small',
+      'SubnetId': 'mysubnetid',
+      'SecurityGroupIds': ['sg-12345'],
+      'KeyName': 'nameofmysshkey',
+      'UserData': 'some-user-data',
+      'ImageId': 'ami-image',
+      'MinCount': 1,
+      'MaxCount': 1,
+      'DryRun': false,
+      'BlockDeviceMappings': [
+          {
+              'DeviceName': '/dev/sda1',
+              'Ebs': {
+                  'VolumeSize': 14
+              }
+          }
+      ]
+    });
+
+    // without userdata
+    cometAws.launchInstance({
+      key: 'nameofmysshkey',
+      instanceType: 't2.small',
+      securityGroupIds: ['sg-12345'],
+      amiImageId: 'ami-image',
+      disksize: 14.3
+    });
+
+    expect(ec2.runInstancesPromised).toHaveBeenCalledWith({
+      'InstanceType': 't2.small',
+      'SubnetId': 'mysubnetid',
+      'SecurityGroupIds': ['sg-12345'],
+      'KeyName': 'nameofmysshkey',
+      'UserData': null,
+      'ImageId': 'ami-image',
+      'MinCount': 1,
+      'MaxCount': 1,
+      'DryRun': false,
+      'BlockDeviceMappings': [
+          {
+              'DeviceName': '/dev/sda1',
+              'Ebs': {
+                  'VolumeSize': 14
+              }
+          }
+      ]
     });
   });
 
@@ -97,4 +167,34 @@ describe('CometAws', () => {
         'Tags': tags
     });
   });
+
+  describe('static methods', () => {
+
+    it('should create tag', () => {
+      expect(CometAws.createTag('SomeKey', 'WithSomeValue')).toEqual({
+        Key: 'SomeKey',
+        Value: 'WithSomeValue'
+      });
+    });
+
+    it('should create name tag', () => {
+      expect(CometAws.createNameTag('InstanceName')).toEqual({
+        Key: 'Name',
+        Value: 'InstanceName'
+      });
+    });
+
+    it('should get private DNS address of instance object', () => {
+      expect(CometAws.getPrivateDnsNameForInstance({
+        PrivateDnsName: 'myprivatedns',
+      })).toEqual('myprivatedns');
+    });
+
+    it('should get public DNS address of instance object', () => {
+      expect(CometAws.getPublicDnsNameForInstance({
+        PublicDnsName: 'myprivatedns',
+      })).toEqual('myprivatedns');
+    });    
+  });
+
 });
