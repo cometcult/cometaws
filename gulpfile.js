@@ -15,7 +15,7 @@
 var gulp = require('gulp');
 var gulpJasmine = require('gulp-jasmine');
  
-gulp.task('default', function () {
+gulp.task('test', function () {
     return gulp.src('spec/**/*.js')
         .pipe(gulpJasmine());
 });
