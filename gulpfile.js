@@ -15,7 +15,9 @@
 var gulp = require('gulp');
 var gulpJasmine = require('gulp-jasmine');
 var istanbul = require('gulp-istanbul');
- 
+var coveralls = require('gulp-coveralls');
+var path = require('path');
+
 gulp.task('pre-test', function () {
   return gulp.src(['lib/**/*.js'])
     // Covering files
@@ -32,3 +34,13 @@ gulp.task('test', ['pre-test'], function () {
     // Enforce a coverage of at least 90%
     .pipe(istanbul.enforceThresholds({ thresholds: { global: 90 } }));
 });
+
+gulp.task('coveralls', ['test'], function () {
+    if (process.env.NODE_ENV !== 'travis') {
+        return;
+    }
+    return gulp.src(path.join(__dirname, 'coverage/lcov.info'))
+        .pipe(coveralls());
+});
+
+gulp.task('default', ['test', 'coveralls']);
