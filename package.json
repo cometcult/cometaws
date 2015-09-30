@@ -1,0 +1,38 @@
+{
+  "name": "cometaws",
+  "version": "0.1.0",
+  "description": "Simple AWS toolchain",
+  "main": "index.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cometcult/cometaws.git"
+  },
+  "keywords": [
+    "aws",
+    "deploy",
+    "ci"
+  ],
+  "engines": {
+    "node": ">=4.0.0"
+  },
+  "bin": {
+    "cometshipit": "./bin/cometshipit"
+  },
+  "author": "Even André Fiskvik",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cometcult/cometaws/issues"
+  },
+  "homepage": "https://github.com/cometcult/cometaws#readme",
+  "dependencies": {
+    "aws-promised": "^2.5.0",
+    "bluebird": "^2.10.1",
+    "shipit-cli": "^1.3.0"
+  },
+  "devDependencies": {
+    "gulp-jasmine": "^2.1.0"
+  }
+}

@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+
+// Copyright 2015 Comet Lab AS.
+
+// Permission to use, copy, modify, and/or distribute this software for any 
+// purpose with or without fee is hereby granted, provided that the above 
+// copyright notice and this permission notice appear in all copies.
+
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+// WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF 
+// MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR 
+// ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES 
+// WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
+//  OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN 
+// CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
+var chalk = require('chalk');
+var interpret = require('interpret');
+var v8flags = require('v8flags');
+var Liftoff = require('liftoff');
+var argv = require('minimist')(process.argv.slice(2));
+var Shipit = require('shipit-cli');
+var CometAws = require(`${__dirname}/lib/cometaws/CometAws`);
+var CometDeployer = require(`${__dirname}/lib/cometaws/CometDeployer`);
+
+
+// Initialize cli.
+var cli = new Liftoff({
+  name: 'shipit',
+  extensions: interpret.jsVariants,
+  v8flags: v8flags
+});
+
+// Launch cli.
+cli.launch({
+  cwd: argv.cwd,
+  configPath: argv.shipitfile,
+  require: argv.require,
+  completion: argv.completion
+}, invoke);
+
+/**
+ * Invoke CLI.
+ *
+ * @param {object} env CLI environment
+ */
+
+function invoke(env) {
+  if (!env.configPath) {
+    console.error(chalk.red('shipitfile not found'));
+    exit(1);
+  }
+
+  if (argv._.length === 0) {
+    console.error(chalk.red('environment not found'));
+    exit(1);
+  }
+
+  if (argv._.length === 1) {
+    console.error(chalk.red('task not found'));
+    exit(1);
+  }
+
+  try {
+    initShipit(argv._[0], env.configPath, argv._.slice(1));
+  } catch (e) {
+    console.error(chalk.red(e.message));
+    exit(1);
+  }
+}
+
+/**
+ * Initialize shipit.
+ *
+ * @param {string} env Shipit environement
+ * @param {string} shipfile Shipitfile path
+ * @param {string[]} tasks Tasks
+ */
+
+function initShipit(env, shipfile, tasks) {
+  // Create.
+  var shipit = new Shipit({environment: env});
+
+  // Load shipfile.
+  var cometAws = new CometAws({
+        env: env
+  });
+  var cometDeployer = new CometDeployer(cometAws, shipit);
+  
+  require(shipfile)(shipit, tasks, cometDeployer).then(function () {
+    // Initialize shipit.
+    shipit.initialize();
+
+    // Run tasks.
+    shipit.start(tasks);
+  });
+}
+
+/**
+ * Properly exit.
+ * Even on Windows.
+ *
+ * @param {number} code Exit code
+ */
+
+function exit(code) {
+  if (process.platform === 'win32' && process.stdout.bufferSize) {
+    process.stdout.once('drain', function() {
+      process.exit(code);
+    });
+    return;
+  }
+  process.exit(code);
+}
