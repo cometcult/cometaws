@@ -32,7 +32,8 @@ describe('CometDeployer', () => {
       default: {}
     };
     shipit = {
-      initConfig: jasmine.createSpy()
+      initConfig: jasmine.createSpy(),
+      on: jasmine.createSpy()
     };
 
     cometDeployer = new CometDeployer(cometAws);
@@ -43,6 +44,29 @@ describe('CometDeployer', () => {
         Key: 'Project',
         Value: 'wtp'
     }];
+  });
+
+  describe('fail during errors', function () {
+    // Needed until https://github.com/shipitjs/shipit/commit/e99fe2da270aecd548e5c18b1ba8a4023ba703d3 is tagged in a release
+    beforeAll( () => {
+      this.originalExit = process.exit;
+      process.exit = jasmine.createSpy();
+    });
+
+    it('should configure error handler', function () {
+      cometDeployer.injectErrorHandler(shipit);
+      expect(shipit.on).toHaveBeenCalledWith('task_error', cometDeployer.exitWithError);
+    });
+
+    it('should exit on error event', function () {
+      cometDeployer.exitWithError();
+      expect(process.exit).toHaveBeenCalledWith(1);
+    });
+
+    afterAll( () => {
+      process.exit = this.originalExit;
+    });
+
   });
 
   describe('should configure shipit', () => {
@@ -76,13 +100,14 @@ describe('CometDeployer', () => {
         done();
       });
     });
-
+    
     describe('supporting both private and public dns', () => {
       beforeEach(() => {
         cometDeployer.tags = [{
             Key: 'Project',
             Value: 'wtp'
         }];
+        cometDeployer.sshUsername = 'ubuntu';
         shipit.environment = 'test';
 
         cometAws.describeInstancesWithFilters.and.callFake( () => {
