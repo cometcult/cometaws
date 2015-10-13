@@ -55,7 +55,7 @@ describe('CometDeployer', () => {
 
     it('should configure error handler', function () {
       cometDeployer.injectErrorHandler(shipit);
-      expect(shipit.on).toHaveBeenCalledWith('task_error', cometDeployer.exitWithError);
+      expect(shipit.on).toHaveBeenCalledWith('task_err', cometDeployer.exitWithError);
     });
 
     it('should exit on error event', function () {
