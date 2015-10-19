@@ -23,11 +23,11 @@ describe('CometAws', () => {
       env: 'development'
     });
     ec2 = {
-      terminateInstancesPromised: jasmine.createSpy(),
-      runInstancesPromised: jasmine.createSpy(),
-      describeInstancesPromised: jasmine.createSpy(),
-      describeInstanceStatusPromised: jasmine.createSpy(),
-      createTagsPromised: jasmine.createSpy()
+      terminateInstancesAsync: jasmine.createSpy(),
+      runInstancesAsync: jasmine.createSpy(),
+      describeInstancesAsync: jasmine.createSpy(),
+      describeInstanceStatusAsync: jasmine.createSpy(),
+      createTagsAsync: jasmine.createSpy()
     };
     cometAws.ec2 = ec2;
   });
@@ -35,7 +35,7 @@ describe('CometAws', () => {
   it('should notify when instance reaches a given state', done => {
     var calledCount = 0;
 
-    ec2.describeInstanceStatusPromised.and.callFake( () => {
+    ec2.describeInstanceStatusAsync.and.callFake( () => {
       return bluebird.resolve({
         InstanceStatuses: [{
           InstanceState: {
@@ -46,7 +46,7 @@ describe('CometAws', () => {
     });
 
     cometAws.waitForInstanceStatus('someid', 'running').then(response => {
-      expect(ec2.describeInstanceStatusPromised).toHaveBeenCalledWith({
+      expect(ec2.describeInstanceStatusAsync).toHaveBeenCalledWith({
         'InstanceIds': ['someid']
       });
       expect(calledCount).toEqual(2);
@@ -57,7 +57,7 @@ describe('CometAws', () => {
 
   it('should terminate instance', () => {
     cometAws.terminateInstance('someid');
-    expect(ec2.terminateInstancesPromised).toHaveBeenCalledWith({
+    expect(ec2.terminateInstancesAsync).toHaveBeenCalledWith({
       instanceId: 'someid'
     });
   });
@@ -75,14 +75,14 @@ describe('CometAws', () => {
       Values: ['Confr']
     }];
 
-    ec2.describeInstancesPromised.and.returnValue(bluebird.resolve({
+    ec2.describeInstancesAsync.and.returnValue(bluebird.resolve({
       Reservations: [{
         Instances: []
       }]
     }));
 
     cometAws.describeInstancesWithFilters(filters);
-    expect(ec2.describeInstancesPromised).toHaveBeenCalledWith({
+    expect(ec2.describeInstancesAsync).toHaveBeenCalledWith({
       Filters: filters
     });
   });
@@ -101,7 +101,7 @@ describe('CometAws', () => {
       disksize: 14.3
     });
 
-    expect(ec2.runInstancesPromised).toHaveBeenCalledWith({
+    expect(ec2.runInstancesAsync).toHaveBeenCalledWith({
       'InstanceType': 't2.small',
       'SubnetId': 'mysubnetid',
       'SecurityGroupIds': ['sg-12345'],
@@ -130,7 +130,7 @@ describe('CometAws', () => {
       disksize: 14.3
     });
 
-    expect(ec2.runInstancesPromised).toHaveBeenCalledWith({
+    expect(ec2.runInstancesAsync).toHaveBeenCalledWith({
       'InstanceType': 't2.small',
       'SubnetId': 'mysubnetid',
       'SecurityGroupIds': ['sg-12345'],
@@ -162,7 +162,7 @@ describe('CometAws', () => {
 
     cometAws.tagInstance('someid', tags);
 
-    expect(ec2.createTagsPromised).toHaveBeenCalledWith({
+    expect(ec2.createTagsAsync).toHaveBeenCalledWith({
         'Resources': ['someid'],
         'Tags': tags
     });
