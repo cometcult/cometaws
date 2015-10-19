@@ -86,6 +86,9 @@ function initShipit(env, shipfile, tasks) {
 
     // Run tasks.
     shipit.start(tasks);
+  }).catch(function (err) {
+    console.error(chalk.red(err.message));
+    exit(1);
   });
 }
 

@@ -39,6 +39,10 @@ describe('CometDeployer', () => {
     cometDeployer = new CometDeployer(cometAws);
   });
 
+  it('should initialize with default values', () => {
+    expect(cometDeployer.sshUsername).toEqual('ubuntu');
+  });
+
   it('should set tags', () => {
     cometDeployer.tags = [{
         Key: 'Project',
@@ -107,7 +111,7 @@ describe('CometDeployer', () => {
             Key: 'Project',
             Value: 'wtp'
         }];
-        cometDeployer.sshUsername = 'ubuntu';
+        cometDeployer.sshUsername = 'someuser';
         shipit.environment = 'test';
 
         cometAws.describeInstancesWithFilters.and.callFake( () => {
@@ -125,7 +129,7 @@ describe('CometDeployer', () => {
         cometDeployer.configureShipit(shipit, config).then( (config) => {
           expect(shipit.initConfig).toHaveBeenCalledWith({
             test: {
-              servers: ['ubuntu@SomeInternalDNSAddress']
+              servers: ['someuser@SomeInternalDNSAddress']
             }
           });
           expect(config).toEqual(shipitConfig);
@@ -139,7 +143,7 @@ describe('CometDeployer', () => {
         cometDeployer.configureShipit(shipit, config).then( (config) => {
           expect(shipit.initConfig).toHaveBeenCalledWith({
             test: {
-              servers: ['ubuntu@SomeDNSAddress']
+              servers: ['someuser@SomeDNSAddress']
             }
           });
           expect(config).toEqual(shipitConfig);

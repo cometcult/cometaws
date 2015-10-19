@@ -28,7 +28,6 @@
   },
   "homepage": "https://github.com/cometcult/cometaws#readme",
   "dependencies": {
-    "aws-promised": "^2.5.0",
     "aws-sdk": "^2.2.5",
     "bluebird": "^2.10.1",
     "chalk": "^1.1.1",
