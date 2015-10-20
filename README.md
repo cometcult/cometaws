@@ -1,6 +1,8 @@
 # CometAWS
 
 [![Build Status](https://travis-ci.org/cometcult/cometaws.svg?branch=master)](https://travis-ci.org/cometcult/cometaws)
+[![Dependency Status](https://david-dm.org/cometcult/cometaws.svg)](https://david-dm.org/cometcult/cometaws)
+[![devDependency Status](https://david-dm.org/cometcult/cometaws/dev-status.svg)](https://david-dm.org/cometcult/cometaws#info=devDependencies)
 [![Coverage Status](https://coveralls.io/repos/cometcult/cometaws/badge.svg?branch=master&service=github)](https://coveralls.io/github/cometcult/cometaws?branch=master)
 
 __Extremely Opinionated Amazon Web Services interface with deployment using shipit__
